@@ -11,12 +11,19 @@ UPDATE, CHECK_CODE, UPDATE_GENRE, UPDATE_YEAR, UPDATE_COUNTRY, UPDATE_MOVIE = ra
 
 async def admin_menu(update, context):
     if update.effective_user.id == ADMIN:
-        await update.message.reply_text("Xush kelibsiz ADMIN\nMarhamat bo'limni tanlang(bo'limdan chiqish uchun /stop ni bosing):", reply_markup=ReplyKeyboardMarkup(buttons_for_admin, resize_keyboard=True))
+        await update.message.reply_text(
+            "Xush kelibsiz, admin! 👋\nMarhamat, bo'limni tanlang (bo'limdan chiqish uchun /stop ni bosing):",
+            reply_markup=ReplyKeyboardMarkup(buttons_for_admin, resize_keyboard=True)
+        )
 
 """ ---------------------- ADD NEW MOVIE ---------------------- """
 async def add_movie(update, context):
-    await update.message.reply_text("Kino nomini kiriting:", reply_markup=ReplyKeyboardRemove())
+    await update.message.reply_text(
+        "Kino nomini kiriting: 🎬",
+        reply_markup=ReplyKeyboardRemove()
+    )
     return ADD_MOVIE
+
 
 async def add_genre(update, context):
     movie_name = update.message.text
@@ -73,23 +80,33 @@ async def save_movie_file(update, context):
         movie_file = update.message.video
 
         if not movie_file:
-            await update.message.reply_text("❌ Kino fayli topilmadi. Iltimos, video fayl yuboring!")
+            await update.message.reply_text(
+                "❌ Kino fayli topilmadi. Iltimos, video fayl yuboring! 🎥"
+            )
             return UPLOAD_MOVIE
 
         file_id = movie_file.file_id
 
         result = db.set_movie(movie_name, movie_code, int(movie_year), movie_genre, movie_country, file_id, 0)
-        await update.message.reply_text(f"{result}\n", reply_markup=ReplyKeyboardMarkup(buttons_for_admin, resize_keyboard=True))
+        await update.message.reply_text(
+            f"{result}\n✅ Kino muvaffaqiyatli qo'shildi!",
+            reply_markup=ReplyKeyboardMarkup(buttons_for_admin, resize_keyboard=True)
+        )
         return ConversationHandler.END
 
     except Exception as e:
-        await update.message.reply_text(f"❌ Xatolik yuz berdi: {e}")
+        await update.message.reply_text(
+            f"❌ Xatolik yuz berdi: {e}\nIltimos, qayta urinib ko'ring."
+        )
         return UPLOAD_MOVIE
 
 
 """ ---------------------- UPDATE MOVIE ---------------------- """
 async def update(update, context):
-    await update.message.reply_text("Tahrirlanayotgan kino kodini kiriting:", reply_markup=ReplyKeyboardRemove())
+    await update.message.reply_text(
+        "Tahrirlanadigan kino kodini kiriting: 🔄",
+        reply_markup=ReplyKeyboardRemove()
+    )
     return UPDATE
 
 async def check_code(update, context):
@@ -98,16 +115,21 @@ async def check_code(update, context):
     try:
         movie_code = int(movie_code_input)
     except ValueError:
-        await update.message.reply_text("Iltimos faqat son kiriting:")
+        await update.message.reply_text(
+            "❌ Iltimos faqat raqam kiriting: masalan, 123."
+        )
         return UPDATE
     context.user_data["movie_code"] = movie_code
     result = db.check_movie_code(movie_code)
 
     if result:
-        await update.message.reply_text("Kino nomini kiriting:")
+        await update.message.reply_text("Kino nomini kiriting: 📝")
         return CHECK_CODE
     else:
-        await update.message.reply_text("Bu koddagi kino topilmadi", reply_markup=ReplyKeyboardMarkup(buttons_for_admin))
+        await update.message.reply_text(
+            "❌ Bu koddagi kino topilmadi. Iltimos, boshqa kodni kiriting.",
+            reply_markup=ReplyKeyboardMarkup(buttons_for_admin, resize_keyboard=True)
+        )
         return ConversationHandler.END
 
 async def update_genre(update, context):
@@ -148,7 +170,9 @@ async def save_update(update, context):
         try:
             movie_file = update.message.video
             if not movie_file:
-                await update.message.reply_text("❌ Kino fayli topilmadi. Iltimos, video fayl yuboring!")
+                await update.message.reply_text(
+                    "❌ Kino fayli topilmadi. Iltimos, video fayl yuboring! 🎬"
+                )
                 return UPDATE_MOVIE
 
             file_id = movie_file.file_id
@@ -167,7 +191,9 @@ async def save_update(update, context):
             return ConversationHandler.END
 
         except Exception as e:
-            await update.message.reply_text(f"❌ Xatolik yuz berdi. Iltimos qayta uruning")
+            await update.message.reply_text(
+                f"❌ Xatolik yuz berdi. Iltimos qayta urining: {e}"
+            )
             return UPDATE_MOVIE
     elif update.message.text and update.message.text == ".":
         if update_name != ".":
@@ -182,13 +208,17 @@ async def save_update(update, context):
         return ConversationHandler.END
 
     else:
-        await update.message.reply_text("❌ Noto'g'ri format! Kino videosini yoki '.' belgisi yuboring.")
+        await update.message.reply_text(
+            "❌ Noto'g'ri format! Kino videosini yoki '.' belgisi yuboring."
+        )
         return UPDATE_MOVIE
 
 
 """ ---------------------- DELETE MOVIE ---------------------- """
 async def get_code(update, context):
-    await update.message.reply_text("O'chirilayotgan kino kodini kiriting:")
+    await update.message.reply_text(
+        "O'chiriladigan kino kodini kiriting: 🗑️"
+    )
     return 0
 
 async def delete_movie(update, context):
@@ -196,22 +226,28 @@ async def delete_movie(update, context):
 
     try:
         delete_movie_code = int(delete_movie_code)
-    except:
-        await update.message.reply_text("Iltimos faqat son yuboring:")
+    except ValueError:
+        await update.message.reply_text(
+            "❌ Iltimos faqat son yuboring: masalan, 123"
+        )
         return 0
 
     result = db.check_movie_code(delete_movie_code)
 
     if result:
         del_msg = db.delete_item(delete_movie_code)
-        await update.message.reply_text(del_msg)
+        await update.message.reply_text(f"✅ {del_msg}")
     else:
-        await update.message.reply_text("Bu kodda kino mavjud emas!")
+        await update.message.reply_text(
+            "❌ Bu kodda kino mavjud emas. Iltimos, boshqa kodni kiriting."
+        )
     return ConversationHandler.END
 
 """ ---------------------- GET MOVIE ---------------------- """
 async def ask_how_many(update, context):
-    await update.message.reply_text("Nechta kinoni ko‘rmoqchisiz?", reply_markup=ReplyKeyboardRemove())
+    await update.message.reply_text(
+        "Nechta kinoni ko‘rmoqchisiz? 🎥", reply_markup=ReplyKeyboardRemove()
+    )
     return 1
 
 async def send_movie_page(update, context):
@@ -244,11 +280,10 @@ async def send_movie_page(update, context):
 async def show_movies(update, context):
     try:
         count = int(update.message.text)
-    except:
-        await update.message.reply_text("Iltimos faqat son kiriting:")
+    except ValueError:
+        await update.message.reply_text("❌ Iltimos faqat son kiriting:")
         return 1
     context.user_data['count'] = count
     context.user_data['page'] = 0
     return await send_movie_page(update, context)
-
 
